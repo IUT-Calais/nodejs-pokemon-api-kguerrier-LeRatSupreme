@@ -3,3 +3,5 @@ dist
 build
 coverage
 **/*.db
+.idea/dataSources/6c529508-3df8-4843-85fe-3abbe924cebb.xml
+.idea/vcs.xml
