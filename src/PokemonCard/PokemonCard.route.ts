@@ -1,7 +1,7 @@
-import express from 'express';
+import { Router } from 'express';
 import {getPokemonCard, getPokemonCardById, postPokemonCard, patchPokemonCardById, deletePokemonCard} from "./PokemonCard.controller";
 
-const router = express();
+const router = Router();
 
 router.get('/', getPokemonCard)
 

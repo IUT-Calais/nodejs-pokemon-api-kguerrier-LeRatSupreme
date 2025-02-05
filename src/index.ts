@@ -6,9 +6,8 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-export const server = app.listen(port, () => {
-  console.log(`Serveur démarré sur http://localhost:${port}`);
-});
+
+export const server = app.listen(port);
 
 export function stopServer() {
   server.close();
