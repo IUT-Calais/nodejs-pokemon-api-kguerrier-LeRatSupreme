@@ -4,19 +4,36 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 export const getPokemonCard = async (_req: express.Request, res: express.Response) => {
-    const PokemonCard = await prisma.pokemonCard.findMany();
-
-    res.status(200).send(PokemonCard);
+    try {
+        const PokemonCard = await prisma.pokemonCard.findMany();
+        res.status(200).send(PokemonCard);
+    } catch (error) {
+        console.error('Erreur lors de la récupération des cartes Pokémon:', error);
+        res.status(500).send({ message: 'Une erreur est survenue lors de la récupération des cartes Pokémon' });
+    }
 }
 
 export const getPokemonCardById = async (_req: express.Request, res: express.Response) => {
-    const PokemonCard = await prisma.pokemonCard.findFirst({
-        where: {
-            pokedexId : parseInt(_req.params.pokemonCardId)
-        }
-    });
+    try {
+        const pokemonCardId = parseInt(_req.params.pokemonCardId);
 
-    res.status(200).send(PokemonCard);
+        if (isNaN(pokemonCardId)) {
+            res.status(400).send({ message: "L'ID du Pokémon est invalide." });
+        }
+
+        const PokemonCard = await prisma.pokemonCard.findFirst({
+            where: { id: pokemonCardId }
+        });
+
+        if (!PokemonCard) {
+            res.status(404).send({ message: "Carte Pokémon non trouvée." });
+        }
+
+        res.status(200).send(PokemonCard);
+    } catch (error) {
+        console.error("Erreur lors de la récupération de la carte Pokémon:", error);
+        res.status(500).send({ message: "Une erreur est survenue lors de la récupération de la carte Pokémon." });
+    }
 }
 
 export const postPokemonCard = async (_req: express.Request, res: express.Response) => {
@@ -44,9 +61,42 @@ export const postPokemonCard = async (_req: express.Request, res: express.Respon
 }
 
 export const patchPokemonCardById  = async (_req: express.Request, res: express.Response) => {
-    res.status(200).send("permet de modifier le pokémon donc le pokemonCardId est passé en paramètre et les propriétés passées dans le body.")
+    try {
+        const pokemonCardId = parseInt(_req.params.pokemonCardId);
+
+        if (isNaN(pokemonCardId)) {
+            res.status(400).send({ message: "L'ID du Pokémon est invalide." });
+        }
+
+        const { name, typeId, pokedexId, lifePoints, size, weight, imageUrl } = _req.body;
+
+        const updatedPokemonCard = await prisma.pokemonCard.update({
+            where: { id: pokemonCardId },
+            data: { name, typeId, pokedexId, lifePoints, size, weight, imageUrl },
+        });
+
+        res.status(200).json(updatedPokemonCard);
+    } catch (error) {
+        console.error("Erreur lors de la mise à jour de la carte Pokémon:", error);
+        res.status(500).send({ message: "Une erreur est survenue lors de la mise à jour de la carte Pokémon." });
+    }
 }
 
 export const deletePokemonCard  = async (_req: express.Request, res: express.Response) => {
-    res.status(200).send("Permet de supprimer le pokémon renseigné avec son pokemonCardId")
+    try {
+        const pokemonCardId = parseInt(_req.params.pokemonCardId);
+
+        if (isNaN(pokemonCardId)) {
+            res.status(400).send({ message: "L'ID du Pokémon est invalide." });
+        }
+
+        const deletedPokemonCard = await prisma.pokemonCard.delete({
+            where: { id: pokemonCardId }
+        });
+
+        res.status(200).json(deletedPokemonCard);
+    } catch (error) {
+        console.error("Erreur lors de la suppression de la carte Pokémon:", error);
+        res.status(500).send({ message: "Une erreur est survenue lors de la suppression de la carte Pokémon." });
+    }
 }
