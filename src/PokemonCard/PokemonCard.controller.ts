@@ -70,6 +70,10 @@ export const patchPokemonCardById  = async (_req: express.Request, res: express.
 
         const { name, typeId, pokedexId, lifePoints, size, weight, imageUrl } = _req.body;
 
+        if (!name || !typeId || !pokedexId || !lifePoints) {
+            res.status(400).json({ message: "Tous les champs sont requis." });
+        }
+
         const updatedPokemonCard = await prisma.pokemonCard.update({
             where: { id: pokemonCardId },
             data: { name, typeId, pokedexId, lifePoints, size, weight, imageUrl },

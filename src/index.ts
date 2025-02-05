@@ -1,5 +1,6 @@
 import express from 'express';
 import PokemonCardRoute from "./PokemonCard/PokemonCard.route";
+import UserRoute from "./User/User.route";
 
 export const app = express();
 const port = process.env.PORT || 3000;
@@ -14,5 +15,6 @@ export function stopServer() {
 }
 
 app.use("/pokemons-cards", PokemonCardRoute);
+app.use("/users", UserRoute);
 
 

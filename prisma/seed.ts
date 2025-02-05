@@ -5,6 +5,7 @@ const prisma = new PrismaClient();
 async function main() {
   await prisma.pokemonCard.deleteMany();
   await prisma.type.deleteMany();
+  await prisma.user.deleteMany();
 
   await prisma.type.createMany({
     data: [
@@ -105,6 +106,15 @@ async function main() {
       }
     ]
   });
+
+  await prisma.user.createMany({
+    data: [
+      {
+        "email": "admin@gmail.com",
+        "password": "admin"
+      }
+    ]
+  })
 
 
   console.log('Seed completed!');
