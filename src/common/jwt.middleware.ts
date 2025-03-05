@@ -11,6 +11,10 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
         ) as {
             userId: string;
         };
+        if (!decodedToken){
+            res.status(401);
+            return;
+        }
         const userId = decodedToken.userId;
         req.query = {
             userId: userId,

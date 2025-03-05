@@ -172,7 +172,6 @@ describe('PokemonCard API', () => {
           .send(newCardData)
           .set('Authorization', 'Bearer mokedToken');
 
-
       expect(response.status).toBe(201);
       expect(response.body).toEqual(expectedCreatedCard);
     });
