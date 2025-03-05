@@ -108,7 +108,7 @@ describe('PokemonCard API', () => {
         }
       ];
 
-
+    prismaMock.pokemonCard.findMany.mockResolvedValue(mockPokemonCards);
 
 
       const response = await request(app).get('/pokemons-cards');
@@ -119,17 +119,18 @@ describe('PokemonCard API', () => {
   });
 
   describe('GET /pokemon-cards/:pokemonCardId', () => {
+    const mockPokemonCard = {
+      "id": 5,
+      "name": "Gengar",
+      "pokedexId": 94,
+      "lifePoints": 60,
+      "size": 1.5,
+      "weight": 40.5,
+      "imageUrl": "gengar",
+      "typeId": 14
+    };
     it('should fetch a PokemonCard by ID', async () => {
-      const mockPokemonCard = {
-        "id": 5,
-        "name": "Gengar",
-        "pokedexId": 94,
-        "lifePoints": 60,
-        "size": 1.5,
-        "weight": 40.5,
-        "imageUrl": "gengar",
-        "typeId": 14
-      };
+      prismaMock.pokemonCard.findUnique.mockResolvedValue(mockPokemonCard);
 
       const response = await request(app).get('/pokemons-cards/5');
       expect(response.status).toBe(200);
@@ -137,31 +138,96 @@ describe('PokemonCard API', () => {
     });
 
     it('should return 404 if PokemonCard is not found', async () => {
+      prismaMock.pokemonCard.findUnique.mockResolvedValue(mockPokemonCard);
+      const response = await request(app).get('/pokemons-cards/35');
       expect(response.status).toBe(404);
-      expect(response.body).toEqual({ error: 'PokemonCard not found' });
+      expect(response.body).toEqual({ message: 'Carte Pokémon non trouvée.' });
     });
   });
 
   describe('POST /pokemon-cards', () => {
     it('should create a new PokemonCard', async () => {
-      const createdPokemonCard = {};
+      const newCardData = {
+        "name": "Bulbizarre 214ddfsdf5d",
+        "pokedexId": 553,
+        "type": 1,
+        "lifePoints": 45
+      };
+
+      const expectedCreatedCard = {
+        "id": 13,
+        "name": "Bulbizarre 214ddfsdf5dgugvgv",
+        "pokedexId": 5577,
+        "lifePoints": 45,
+        "size": null,
+        "weight": null,
+        "imageUrl": null,
+        "typeId": 1
+      };
+
+      prismaMock.pokemonCard.create.mockResolvedValue(expectedCreatedCard);
+
+      const response = await request(app)
+          .post('/pokemons-cards')
+          .send(newCardData)
+          .set('Authorization', 'Bearer mokedToken');
+
 
       expect(response.status).toBe(201);
-      expect(response.body).toEqual(createdPokemonCard);
+      expect(response.body).toEqual(expectedCreatedCard);
     });
   });
 
   describe('PATCH /pokemon-cards/:pokemonCardId', () => {
     it('should update an existing PokemonCard', async () => {
-      const updatedPokemonCard = {};
+      const updatedCardData = {
+        "name": "Updated Bulbizarre",
+        "pokedexId": 553,
+        "typeId": 1,
+        "lifePoints": 50,
+        "size": 1.0,
+        "weight": 10.0,
+        "imageUrl": "updated-bulbizarre"
+      };
+
+      const expectedUpdatedCard = {
+        "id": 35,
+        "name": "Updated Bulbizarre",
+        "pokedexId": 553,
+        "lifePoints": 50,
+        "size": 1.0,
+        "weight": 10.0,
+        "imageUrl": "updated-bulbizarre",
+        "typeId": 1
+      };
+
+      prismaMock.pokemonCard.update.mockResolvedValue(expectedUpdatedCard);
+
+      const response = await request(app)
+          .patch('/pokemons-cards/35')
+          .send(updatedCardData)
+          .set('Authorization', 'Bearer mockedToken');
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(updatedPokemonCard);
+      expect(response.body).toEqual(expectedUpdatedCard);
     });
   });
 
   describe('DELETE /pokemon-cards/:pokemonCardId', () => {
     it('should delete a PokemonCard', async () => {
+      prismaMock.pokemonCard.delete.mockResolvedValue({ "id": 35,
+        "name": "Updated Bulbizarre",
+        "pokedexId": 553,
+        "lifePoints": 50,
+        "size": 1.0,
+        "weight": 10.0,
+        "imageUrl": "updated-bulbizarre",
+        "typeId": 1});
+
+      const response = await request(app)
+          .delete('/pokemons-cards/35')
+          .set('Authorization', 'Bearer fake-jwt-token');
+
       expect(response.status).toBe(204);
     });
   });
