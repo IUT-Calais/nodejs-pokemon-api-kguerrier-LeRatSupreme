@@ -138,8 +138,8 @@ describe('PokemonCard API', () => {
     });
 
     it('should return 404 if PokemonCard is not found', async () => {
-      prismaMock.pokemonCard.findUnique.mockResolvedValue(mockPokemonCard);
-      const response = await request(app).get('/pokemons-cards/35');
+      prismaMock.pokemonCard.findUnique.mockResolvedValue(null);
+      const response = await request(app).get('/pokemons-cards/1000');
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ message: 'Carte Pokémon non trouvée.' });
     });
@@ -155,7 +155,7 @@ describe('PokemonCard API', () => {
       };
 
       const expectedCreatedCard = {
-        "id": 13,
+        "id": 1,
         "name": "Bulbizarre 214ddfsdf5dgugvgv",
         "pokedexId": 5577,
         "lifePoints": 45,
@@ -169,8 +169,8 @@ describe('PokemonCard API', () => {
 
       const response = await request(app)
           .post('/pokemons-cards')
-          .send(newCardData)
-          .set('Authorization', 'Bearer mokedToken');
+          .set('Authorization', 'Bearer mockedToken')
+          .send(newCardData);
 
       expect(response.status).toBe(201);
       expect(response.body).toEqual(expectedCreatedCard);
@@ -225,7 +225,7 @@ describe('PokemonCard API', () => {
 
       const response = await request(app)
           .delete('/pokemons-cards/35')
-          .set('Authorization', 'Bearer fake-jwt-token');
+          .set('Authorization', 'Bearer mockedToken');
 
       expect(response.status).toBe(204);
     });

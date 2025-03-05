@@ -1,7 +1,5 @@
 import express from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '../client';
 
 export const getPokemonCard = async (_req: express.Request, res: express.Response) => {
     try {
@@ -19,14 +17,16 @@ export const getPokemonCardById = async (_req: express.Request, res: express.Res
 
         if (isNaN(pokemonCardId)) {
             res.status(400).send({ message: "L'ID du Pokémon est invalide." });
+            return;
         }
 
-        const PokemonCard = await prisma.pokemonCard.findFirst({
+        const PokemonCard = await prisma.pokemonCard.findUnique({
             where: { id: pokemonCardId }
         });
 
         if (!PokemonCard) {
             res.status(404).send({ message: "Carte Pokémon non trouvée." });
+            return;
         }
 
         res.status(200).send(PokemonCard);
@@ -36,12 +36,14 @@ export const getPokemonCardById = async (_req: express.Request, res: express.Res
     }
 }
 
-export const postPokemonCard = async (_req: express.Request, res: express.Response) => {
+export const postPokemonCard = async (req: express.Request, res: express.Response) => {
+    //res.status(42).send({ message: "Tous les champs sont requis." });
+    //return;
     try {
-        const PokemonCardData = _req.body;
-
+        const PokemonCardData = req.body;
         if (!PokemonCardData.name || !PokemonCardData.pokedexId || !PokemonCardData.type || !PokemonCardData.lifePoints) {
-            res.status(400).json({ message: "Tous les champs sont requis." });
+            res.status(400).send({ message: "Tous les champs sont requis." });
+            return;
         }
 
         const NewPokemonCard = await prisma.pokemonCard.create({
@@ -53,10 +55,10 @@ export const postPokemonCard = async (_req: express.Request, res: express.Respon
             }
         });
 
-        res.status(201).json(NewPokemonCard);
+        res.status(201).send(NewPokemonCard);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Erreur interne du serveur"});
+        res.status(500).send({ message: "Erreur interne du serveur"});
     }
 }
 
@@ -98,7 +100,7 @@ export const deletePokemonCard  = async (_req: express.Request, res: express.Res
             where: { id: pokemonCardId }
         });
 
-        res.status(200).json(deletedPokemonCard);
+        res.status(204).json(deletedPokemonCard);
     } catch (error) {
         console.error("Erreur lors de la suppression de la carte Pokémon:", error);
         res.status(500).send({ message: "Une erreur est survenue lors de la suppression de la carte Pokémon." });
