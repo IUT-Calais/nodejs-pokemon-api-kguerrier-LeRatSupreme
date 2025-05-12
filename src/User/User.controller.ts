@@ -85,3 +85,98 @@ export const loginUser = async (_req: express.Request, res: express.Response): P
         res.status(500).json({ message: "Erreur interne du serveur." });
     }
 };
+
+export const getUsers = async (_req: express.Request, res: express.Response): Promise<void> => {
+    try {
+        const users = await prisma.user.findMany();
+        res.status(200).json(users);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+};
+
+export const getUserById = async (_req: express.Request, res: express.Response): Promise<void> => {
+    try {
+        const userId = parseInt(_req.params.userId);
+
+        if (isNaN(userId)) {
+            res.status(400).json({ message: "L'ID de l'utilisateur est invalide." });
+            return;
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+        });
+
+        if (!user) {
+            res.status(404).json({ message: "Utilisateur non trouvé." });
+            return;
+        }
+
+        res.status(200).json(user);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+};
+
+export const updateUserById = async (_req: express.Request, res: express.Response): Promise<void> => {
+    try {
+        const userId = parseInt(_req.params.userId);
+
+        if (isNaN(userId)) {
+            res.status(400).json({ message: "L'ID de l'utilisateur est invalide." });
+            return;
+        }
+
+        const { email, password } = _req.body;
+
+        if (!email && !password) {
+            res.status(400).json({ message: "Au moins un champ doit être fourni pour la mise à jour." });
+            return;
+        }
+
+        const updatedData: any = {};
+        if (email) updatedData.email = email;
+        if (password) {
+            const salt = await b.genSalt();
+            updatedData.password = await b.hash(password, salt);
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: updatedData,
+        });
+
+        res.status(200).json(updatedUser);
+    } catch (error: any) {
+        console.error(error);
+
+        if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+            res.status(400).json({ message: "Email déjà utilisé." });
+        } else {
+            res.status(500).json({ message: "Erreur interne du serveur." });
+        }
+    }
+};
+
+export const deleteUserById = async (_req: express.Request, res: express.Response): Promise<void> => {
+    try {
+        const userId = parseInt(_req.params.userId);
+
+        if (isNaN(userId)) {
+            res.status(400).json({ message: "L'ID de l'utilisateur est invalide." });
+            return;
+        }
+
+        await prisma.user.delete({
+            where: { id: userId },
+        });
+
+        res.status(204).send();
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Erreur interne du serveur." });
+    }
+};
