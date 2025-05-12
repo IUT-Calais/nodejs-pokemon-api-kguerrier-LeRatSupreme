@@ -4,230 +4,179 @@ import { prismaMock } from './jest.setup';
 
 describe('PokemonCard API', () => {
   describe('GET /pokemon-cards', () => {
-    it('should fetch all PokemonCards', async () => {
-      const mockPokemonCards = [
-        {
-          "id": 1,
-          "name": "Charmander",
-          "pokedexId": 4,
-          "lifePoints": 39,
-          "size": 0.6,
-          "weight": 8.5,
-          "imageUrl": "charmander",
-          "typeId": 2
-        },
-        {
-          "id": 2,
-          "name": "Squirtle",
-          "pokedexId": 7,
-          "lifePoints": 44,
-          "size": 0.5,
-          "weight": 9,
-          "imageUrl": "squirtle",
-          "typeId": 3
-        },
-        {
-          "id": 3,
-          "name": "Bulbasaur",
-          "pokedexId": 1,
-          "lifePoints": 45,
-          "size": 0.7,
-          "weight": 6.9,
-          "imageUrl": "bulbasaur",
-          "typeId": 4
-        },
-        {
-          "id": 4,
-          "name": "Jigglypuff",
-          "pokedexId": 39,
-          "lifePoints": 115,
-          "size": 0.5,
-          "weight": 5.5,
-          "imageUrl": "jigglypuff",
-          "typeId": 1
-        },
-        {
-          "id": 5,
-          "name": "Gengar",
-          "pokedexId": 94,
-          "lifePoints": 60,
-          "size": 1.5,
-          "weight": 40.5,
-          "imageUrl": "gengar",
-          "typeId": 14
-        },
-        {
-          "id": 6,
-          "name": "Eevee",
-          "pokedexId": 133,
-          "lifePoints": 55,
-          "size": 0.3,
-          "weight": 6.5,
-          "imageUrl": "eevee",
-          "typeId": 1
-        },
-        {
-          "id": 7,
-          "name": "Snorlax",
-          "pokedexId": 143,
-          "lifePoints": 160,
-          "size": 2.1,
-          "weight": 460,
-          "imageUrl": "snorlax",
-          "typeId": 1
-        },
-        {
-          "id": 8,
-          "name": "Dragonite",
-          "pokedexId": 149,
-          "lifePoints": 91,
-          "size": 2.2,
-          "weight": 210,
-          "imageUrl": "dragonite",
-          "typeId": 15
-        },
-        {
-          "id": 9,
-          "name": "Mewtwo",
-          "pokedexId": 150,
-          "lifePoints": 106,
-          "size": 2,
-          "weight": 122,
-          "imageUrl": "mewtwo",
-          "typeId": 11
-        },
-        {
-          "id": 10,
-          "name": "Bulbizarre 214",
-          "pokedexId": 549,
-          "lifePoints": 45,
-          "size": null,
-          "weight": null,
-          "imageUrl": null,
-          "typeId": 1
-        }
+    it('should return all Pokemon cards', async () => {
+      const mockCards = [
+        { id: 1, name: 'Bulbasaur', pokedexId: 1, typeId: 1, lifePoints: 45, size: null, weight: null, imageUrl: null },
+        { id: 2, name: 'Charmander', pokedexId: 4, typeId: 2, lifePoints: 39, size: null, weight: null, imageUrl: null },
       ];
 
-    prismaMock.pokemonCard.findMany.mockResolvedValue(mockPokemonCards);
-
+      prismaMock.pokemonCard.findMany.mockResolvedValue(mockCards);
 
       const response = await request(app).get('/pokemons-cards');
-
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockPokemonCards);
+      expect(response.body).toEqual(mockCards);
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      prismaMock.pokemonCard.findMany.mockRejectedValue(new Error('Unexpected error'));
+      const response = await request(app).get('/pokemons-cards');
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Une erreur est survenue lors de la récupération des cartes Pokémon' });
     });
   });
 
   describe('GET /pokemon-cards/:pokemonCardId', () => {
-    const mockPokemonCard = {
-      "id": 5,
-      "name": "Gengar",
-      "pokedexId": 94,
-      "lifePoints": 60,
-      "size": 1.5,
-      "weight": 40.5,
-      "imageUrl": "gengar",
-      "typeId": 14
-    };
-    it('should fetch a PokemonCard by ID', async () => {
-      prismaMock.pokemonCard.findUnique.mockResolvedValue(mockPokemonCard);
+    it('should return a Pokemon card by ID', async () => {
+      const mockCard = { id: 1, name: 'Bulbasaur', pokedexId: 1, typeId: 1, lifePoints: 45, size: null, weight: null, imageUrl: null };
 
-      const response = await request(app).get('/pokemons-cards/5');
+      prismaMock.pokemonCard.findUnique.mockResolvedValue(mockCard);
+
+      const response = await request(app).get('/pokemons-cards/1');
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(mockPokemonCard);
+      expect(response.body).toEqual(mockCard);
     });
 
-    it('should return 404 if PokemonCard is not found', async () => {
+    it('should return 404 if the Pokemon card is not found', async () => {
       prismaMock.pokemonCard.findUnique.mockResolvedValue(null);
-      const response = await request(app).get('/pokemons-cards/1000');
+
+      const response = await request(app).get('/pokemons-cards/999');
       expect(response.status).toBe(404);
       expect(response.body).toEqual({ message: 'Carte Pokémon non trouvée.' });
+    });
+
+    it('should return 400 if the ID is invalid', async () => {
+      const response = await request(app).get('/pokemons-cards/invalid-id');
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: "L'ID du Pokémon est invalide." });
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      prismaMock.pokemonCard.findUnique.mockRejectedValue(new Error('Unexpected error'));
+      const response = await request(app).get('/pokemons-cards/1');
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: "Une erreur est survenue lors de la récupération de la carte Pokémon." });
     });
   });
 
   describe('POST /pokemon-cards', () => {
-    it('should create a new PokemonCard', async () => {
-      const newCardData = {
-        "name": "Bulbizarre 214ddfsdf5d",
-        "pokedexId": 553,
-        "type": 1,
-        "lifePoints": 45
-      };
+    it('should create a new Pokemon card', async () => {
+      const newCard = { name: 'Bulbasaur', pokedexId: 1, type: 1, lifePoints: 45 };
+      const createdCard = { id: 1, ...newCard, typeId: 1, size: null, weight: null, imageUrl: null };
 
-      const expectedCreatedCard = {
-        "id": 1,
-        "name": "Bulbizarre 214ddfsdf5dgugvgv",
-        "pokedexId": 5577,
-        "lifePoints": 45,
-        "size": null,
-        "weight": null,
-        "imageUrl": null,
-        "typeId": 1
-      };
-
-      prismaMock.pokemonCard.create.mockResolvedValue(expectedCreatedCard);
+      prismaMock.pokemonCard.create.mockResolvedValue(createdCard);
 
       const response = await request(app)
           .post('/pokemons-cards')
-          .set('Authorization', 'Bearer mockedToken')
-          .send(newCardData);
-
+          .send(newCard)
+          .set('Authorization', 'Bearer mockedToken');
       expect(response.status).toBe(201);
-      expect(response.body).toEqual(expectedCreatedCard);
+      expect(response.body).toEqual(createdCard);
+    });
+
+    it('should return 400 if required fields are missing', async () => {
+      const incompleteData = { name: 'Bulbasaur' };
+      const response = await request(app)
+          .post('/pokemons-cards')
+          .send(incompleteData)
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: 'Tous les champs sont requis.' });
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      prismaMock.pokemonCard.create.mockRejectedValue(new Error('Unexpected error'));
+      const validData = {
+        name: 'Bulbasaur',
+        pokedexId: 1,
+        type: 1,
+        lifePoints: 45,
+      };
+      const response = await request(app)
+          .post('/pokemons-cards')
+          .send(validData)
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Erreur interne du serveur' });
     });
   });
 
   describe('PATCH /pokemon-cards/:pokemonCardId', () => {
-    it('should update an existing PokemonCard', async () => {
-      const updatedCardData = {
-        "name": "Updated Bulbizarre",
-        "pokedexId": 553,
-        "typeId": 1,
-        "lifePoints": 50,
-        "size": 1.0,
-        "weight": 10.0,
-        "imageUrl": "updated-bulbizarre"
-      };
+    it('should update a Pokemon card by ID', async () => {
+      const updatedData = { name: 'Ivysaur', pokedexId: 2, typeId: 1, lifePoints: 60 };
+      const updatedCard = { id: 1, ...updatedData, size: null, weight: null, imageUrl: null };
 
-      const expectedUpdatedCard = {
-        "id": 35,
-        "name": "Updated Bulbizarre",
-        "pokedexId": 553,
-        "lifePoints": 50,
-        "size": 1.0,
-        "weight": 10.0,
-        "imageUrl": "updated-bulbizarre",
-        "typeId": 1
-      };
-
-      prismaMock.pokemonCard.update.mockResolvedValue(expectedUpdatedCard);
+      prismaMock.pokemonCard.update.mockResolvedValue(updatedCard);
 
       const response = await request(app)
-          .patch('/pokemons-cards/35')
-          .send(updatedCardData)
+          .patch('/pokemons-cards/1')
+          .send(updatedData)
           .set('Authorization', 'Bearer mockedToken');
-
       expect(response.status).toBe(200);
-      expect(response.body).toEqual(expectedUpdatedCard);
+      expect(response.body).toEqual(updatedCard);
+    });
+
+    it('should return 400 if the ID is invalid', async () => {
+      const response = await request(app)
+          .patch('/pokemons-cards/invalid-id')
+          .send({ name: 'Updated Name' })
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: "L'ID du Pokémon est invalide." });
+    });
+
+    it('should return 400 if required fields are missing', async () => {
+      const response = await request(app)
+          .patch('/pokemons-cards/1')
+          .send({ name: '' })
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: 'Tous les champs sont requis.' });
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      prismaMock.pokemonCard.update.mockRejectedValue(new Error('Unexpected error'));
+      const validData = {
+        name: 'Updated Name',
+        pokedexId: 1,
+        typeId: 1,
+        lifePoints: 50,
+      };
+      const response = await request(app)
+          .patch('/pokemons-cards/1')
+          .send(validData)
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Une erreur est survenue lors de la mise à jour de la carte Pokémon.' });
     });
   });
 
   describe('DELETE /pokemon-cards/:pokemonCardId', () => {
-    it('should delete a PokemonCard', async () => {
-      prismaMock.pokemonCard.delete.mockResolvedValue({ "id": 35,
-        "name": "Updated Bulbizarre",
-        "pokedexId": 553,
-        "lifePoints": 50,
-        "size": 1.0,
-        "weight": 10.0,
-        "imageUrl": "updated-bulbizarre",
-        "typeId": 1});
+    it('should delete a Pokemon card by ID', async () => {
+      const deletedCard = { id: 1, name: 'Bulbasaur', pokedexId: 1, typeId: 1, lifePoints: 45, size: null, weight: null, imageUrl: null };
+
+      prismaMock.pokemonCard.delete.mockResolvedValue(deletedCard);
 
       const response = await request(app)
-          .delete('/pokemons-cards/35')
+          .delete('/pokemons-cards/1')
           .set('Authorization', 'Bearer mockedToken');
-
       expect(response.status).toBe(204);
+    });
+
+    it('should return 400 if the ID is invalid', async () => {
+      const response = await request(app)
+          .delete('/pokemons-cards/invalid-id')
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(400);
+      expect(response.body).toEqual({ message: "L'ID du Pokémon est invalide." });
+    });
+
+    it('should return 500 if an unexpected error occurs', async () => {
+      prismaMock.pokemonCard.delete.mockRejectedValue(new Error('Unexpected error'));
+      const response = await request(app)
+          .delete('/pokemons-cards/1')
+          .set('Authorization', 'Bearer mockedToken');
+      expect(response.status).toBe(500);
+      expect(response.body).toEqual({ message: 'Une erreur est survenue lors de la suppression de la carte Pokémon.' });
     });
   });
 });

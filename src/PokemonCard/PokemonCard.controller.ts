@@ -62,18 +62,20 @@ export const postPokemonCard = async (req: express.Request, res: express.Respons
     }
 }
 
-export const patchPokemonCardById  = async (_req: express.Request, res: express.Response) => {
+export const patchPokemonCardById = async (_req: express.Request, res: express.Response) => {
     try {
         const pokemonCardId = parseInt(_req.params.pokemonCardId);
 
         if (isNaN(pokemonCardId)) {
             res.status(400).send({ message: "L'ID du Pokémon est invalide." });
+            return;
         }
 
         const { name, typeId, pokedexId, lifePoints, size, weight, imageUrl } = _req.body;
 
         if (!name || !typeId || !pokedexId || !lifePoints) {
             res.status(400).json({ message: "Tous les champs sont requis." });
+            return;
         }
 
         const updatedPokemonCard = await prisma.pokemonCard.update({
@@ -86,7 +88,7 @@ export const patchPokemonCardById  = async (_req: express.Request, res: express.
         console.error("Erreur lors de la mise à jour de la carte Pokémon:", error);
         res.status(500).send({ message: "Une erreur est survenue lors de la mise à jour de la carte Pokémon." });
     }
-}
+};
 
 export const deletePokemonCard  = async (_req: express.Request, res: express.Response) => {
     try {
@@ -94,6 +96,7 @@ export const deletePokemonCard  = async (_req: express.Request, res: express.Res
 
         if (isNaN(pokemonCardId)) {
             res.status(400).send({ message: "L'ID du Pokémon est invalide." });
+            return;
         }
 
         const deletedPokemonCard = await prisma.pokemonCard.delete({

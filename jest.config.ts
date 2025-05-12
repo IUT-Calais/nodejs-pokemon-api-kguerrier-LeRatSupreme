@@ -13,6 +13,13 @@ const config: Config = {
       statements: 100,
     },
   },
+  collectCoverage: true,
+  collectCoverageFrom: [
+    'src/**/*.ts',
+    '!src/**/*.d.ts',
+  ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['text', 'lcov'],
   setupFilesAfterEnv: ['./tests/jest.setup.ts'],
 };
 

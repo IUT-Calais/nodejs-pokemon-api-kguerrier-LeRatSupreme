@@ -22,10 +22,22 @@ export const createUser = async (_req: express.Request, res: express.Response): 
             }
         });
 
-        res.status(201).json(NewUser);
-    } catch (error) {
+        const token = jwt.sign(
+            { userId: NewUser.id, email: NewUser.email }, // Payload
+            process.env.JWT_SECRET as jwt.Secret, // Secret
+            { expiresIn: process.env.JWT_EXPIRES_IN } // Expiration
+        );
+
+        res.status(201).json({ user: NewUser, token });
+    } catch (error: any) {
         console.error(error);
-        res.status(400).json({ message: "Utilisateur déja existant" });
+
+        // Vérifiez si l'erreur est une violation d'unicité (P2002)
+        if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+            res.status(400).json({ message: "Utilisateur déjà existant." });
+        } else {
+            res.status(500).json({ message: "Erreur interne du serveur." });
+        }
     }
 };
 
@@ -35,6 +47,13 @@ export const loginUser = async (_req: express.Request, res: express.Response): P
 
         if (!email || !password) {
             res.status(400).json({ message: "Tous les champs sont requis." });
+            return;
+        }
+
+        // Validation du format de l'email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            res.status(400).json({ message: "Format de l'email invalide." });
             return;
         }
 
